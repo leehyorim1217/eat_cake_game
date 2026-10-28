@@ -12,10 +12,10 @@
 html,body{height:100%;margin:0}
 body{background:var(--bg);font-family:'Galmuri11','DotGothic16','Malgun Gothic',monospace;color:var(--cream);display:flex;align-items:center;justify-content:center;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
 #wrap{position:relative;width:min(100vw,calc(100dvh*2/3));aspect-ratio:2/3;background:#5c94fc}
-#wrap::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 4px var(--cream),inset 0 0 0 8px #000;background:repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 1px,transparent 1px 3px)}
-canvas{display:block;width:100%;height:100%;touch-action:none;image-rendering:pixelated}
+#wrap::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 4px var(--cream),inset 0 0 0 8px #000}
+canvas{display:block;width:100%;height:100%;touch-action:none}
 #ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(13,13,26,.6)}
-.card{background:var(--navy);border:4px solid var(--cream);box-shadow:0 0 0 4px #000,8px 8px 0 4px rgba(0,0,0,.5);padding:24px 20px;text-align:center;width:100%;max-width:320px}
+.card{background:var(--navy);border:4px solid var(--cream);box-shadow:0 0 0 4px #000,8px 8px 0 4px rgba(0,0,0,.5);padding:24px 20px;text-align:center;width:100%;max-width:320px;max-height:100%;overflow:auto;scrollbar-width:thin;scrollbar-color:#f4f1de #1b1b2f}
 h1{margin:0 0 12px;font-size:clamp(30px,9vw,44px);font-weight:400;line-height:1.15;color:var(--sun);text-shadow:3px 3px 0 var(--red)}
 p{margin:0 0 20px;font-size:clamp(13px,3.6vw,15px);line-height:1.7}
 b{color:var(--sun);font-weight:400}
@@ -23,10 +23,19 @@ button{font:inherit;font-size:20px;color:var(--navy);background:var(--sun);borde
 button:active{box-shadow:inset 4px 4px 0 #c99700,inset -4px -4px 0 #fff3b0;transform:translate(2px,2px)}
 button:focus-visible{outline:3px dashed var(--red);outline-offset:4px}
 #m{position:absolute;top:56px;right:14px;font-size:16px;padding:2px 6px;background:var(--navy);border:3px solid var(--cream);box-shadow:0 0 0 3px #000}
-.up{display:grid;gap:8px;margin-top:20px;text-align:left}
-.line{display:flex;align-items:center;gap:6px;font-size:14px}
-.line span{width:3.6em;color:var(--sun)}
-.line em{font-style:normal;font-size:12px;margin-left:auto;opacity:.8}
+.up{margin-top:16px}
+#set h1{font-size:28px;margin-bottom:8px}
+.hint{font-size:12px;margin-bottom:6px}
+.sec{margin-top:14px;text-align:left}
+.sec h2{display:flex;justify-content:space-between;align-items:center;margin:0 0 6px;font-size:14px;font-weight:400;color:var(--sun)}
+.grid{display:grid;grid-template-columns:repeat(5,48px);gap:8px;padding:8px;border:2px dashed #55557f;min-height:68px}
+.grid.drag{border-color:var(--sun);background:rgba(255,210,63,.12)}
+.th{position:relative;width:48px;height:48px;border:2px solid var(--cream);background:repeating-conic-gradient(#2a2a44 0 25%,#34345a 0 50%) 0 0/12px 12px}
+.th img{width:100%;height:100%;object-fit:contain;display:block}
+.x{position:absolute;top:-9px;right:-9px;width:20px;height:20px;padding:0;font-size:11px;line-height:1;background:var(--red);color:#fff;border:2px solid #000;box-shadow:none}
+.add{width:48px;height:48px;padding:0;font-size:24px;background:#3a3a5c;color:var(--cream);border:2px dashed var(--cream);box-shadow:none}
+.none{grid-column:2/-1;align-self:center;font-size:12px;opacity:.75}
+#back{margin-top:18px}
 .alt{font-size:14px;padding:4px 10px;background:#3a3a5c;color:var(--cream);border:3px solid var(--cream);box-shadow:none}
 .alt:active{background:#55557f;transform:none;box-shadow:none}
 </style>
@@ -35,24 +44,33 @@ button:focus-visible{outline:3px dashed var(--red);outline-offset:4px}
 <div id="wrap">
   <canvas id="g" aria-label="똥피하기 게임 화면"></canvas>
   <div id="ui">
-    <div class="card">
+    <div class="card" id="main">
       <h1 id="t">똥피하기 💩</h1>
       <p id="d">먹이는 먹고 똥은 피해야 합니다.<br>← → / A D 키, 마우스, 터치로 움직일 수 있습니다.<br>먹이를 연속으로 먹으면 콤보 점수가 올라갑니다.</p>
       <button id="b" autofocus>▶ 시작하기</button>
-      <div class="up">
-        <div class="line"><span>캐릭터</span><button class="alt" data-k="char">올리기</button><button class="alt" data-r="char" hidden>기본으로</button><em data-n="char"></em></div>
-        <div class="line"><span>똥</span><button class="alt" data-k="poop">추가</button><button class="alt" data-r="poop" hidden>기본으로</button><em data-n="poop"></em></div>
-        <div class="line"><span>먹이</span><button class="alt" data-k="food">추가</button><button class="alt" data-r="food" hidden>기본으로</button><em data-n="food"></em></div>
-        <input id="f" type="file" accept="image/*" hidden>
-      </div>
+      <div class="up"><button class="alt" id="gs">🖼 이미지 설정</button></div>
     </div>
+    <div class="card" id="set" hidden>
+      <h1>이미지 설정</h1>
+      <p class="hint">이미지를 끌어다 놓거나 + 칸을 눌러 추가합니다.<br>여러 장을 한 번에 선택할 수 있으며, 이 브라우저에만 저장됩니다.</p>
+      <div id="secs"></div>
+      <button id="back">확인</button>
+    </div>
+    <input id="f" type="file" accept="image/*" hidden>
   </div>
   <button id="m" aria-label="소리 켜기/끄기">🔊</button>
 </div>
 <script>
 const cv = document.getElementById('g'), ctx = cv.getContext('2d');
 const W = 400, H = 600;
-cv.width = W; cv.height = H;
+let S = 1;                                    // 화면 배율 (논리 좌표 → 실제 픽셀)
+const sn = v => Math.round(v * S) / S;        // 실제 픽셀에 맞춰 좌표 정렬
+function resize() {
+  const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+  cv.width = Math.max(1, Math.round(r.width * d)); cv.height = Math.max(1, Math.round(r.height * d));
+  S = cv.width / W;
+}
+resize(); new ResizeObserver(resize).observe(cv);
 const ui = document.getElementById('ui'), tEl = document.getElementById('t'),
       dEl = document.getElementById('d'), bEl = document.getElementById('b');
 
@@ -82,12 +100,12 @@ function loadImg(src) {
 }
 const IMG = { char: loadImg(ASSETS.char), poop: loadImg(ASSETS.poop), foods: ASSETS.foods.map(loadImg) };
 function sprite(img, emoji, x, y, size, rot, sx, sy) {
-  ctx.save(); ctx.translate(x, y); ctx.rotate(rot || 0); ctx.scale(sx || 1, sy || 1);
+  ctx.save(); ctx.translate(sn(x), sn(y)); ctx.rotate(rot || 0); ctx.scale(sx || 1, sy || 1);
   if (img && img.ok) {
     const k = size / Math.max(img.naturalWidth, img.naturalHeight);
-    const w = img.naturalWidth * k, h = img.naturalHeight * k;
-    ctx.drawImage(img, -w / 2, -h / 2, w, h);
-  } else { ctx.font = (size * 0.9) + 'px serif'; ctx.fillText(emoji, 0, 0); }
+    const w = sn(img.naturalWidth * k), h = sn(img.naturalHeight * k);
+    ctx.drawImage(img, sn(-w / 2), sn(-h / 2), w, h);
+  } else { ctx.fillStyle = '#000'; ctx.font = (size * 0.9) + 'px serif'; ctx.fillText(emoji, 0, 0); }
   ctx.restore();
 }
 
@@ -144,7 +162,7 @@ function gameOver() {
   tEl.textContent = '게임 오버 💩';
   dEl.innerHTML = '점수 <b>' + score + '</b> · 최고 <b>' + best + '</b>' + (isBest ? '<br>신기록입니다!' : '');
   bEl.textContent = '▶ 다시 하기';
-  ui.hidden = false; bEl.focus();
+  showMain(); ui.hidden = false; bEl.focus();
 }
 
 function update(dt) {
@@ -207,8 +225,10 @@ function box(x, y, w, h) {
   ctx.fillStyle = '#1b1b2f'; ctx.fillRect(x, y, w, h);
   ctx.strokeStyle = '#f4f1de'; ctx.lineWidth = 3; ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
 }
-function label(t, x, y, c) { ctx.fillStyle = '#000'; ctx.fillText(t, x + 2, y + 2); ctx.fillStyle = c; ctx.fillText(t, x, y); }
+function label(t, x, y, c) { x = sn(x); y = sn(y); ctx.fillStyle = '#000'; ctx.fillText(t, x + 2, y + 2); ctx.fillStyle = c; ctx.fillText(t, x, y); }
 function draw() {
+  ctx.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   ctx.save();
   if (shake > 0) ctx.translate((Math.random() - .5) * shake * 24, (Math.random() - .5) * shake * 24);
   SKY.forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(-20, i * H / 6 - 1, W + 40, H / 6 + 2); });
@@ -222,20 +242,14 @@ function draw() {
   ctx.fillStyle = '#005800'; ctx.fillRect(-20, H - 32, W + 40, 2);
 
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  for (const it of items) {                    // 그림자 → 먹이 반짝임 → 본체
+  for (const it of items) {                    // 그림자 → 본체
     const a = Math.min(1, it.y / H), w = Math.round(8 + 12 * a);
     ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(Math.round(it.x) - w, H - 38, w * 2, 3);
-    if (!it.poop) {
-      const s = Math.round(SIZE.item * 1.25);
-      ctx.fillStyle = Math.sin(time * 8 + it.r) > 0 ? 'rgba(255,230,120,.5)' : 'rgba(255,230,120,.2)';
-      ctx.fillRect(Math.round(it.x - s / 2), Math.round(it.y - s / 2), s, s);
-    }
     sprite(it.img, it.e, it.x, it.y, SIZE.item, it.poop ? it.r : Math.sin(time * 4 + it.r) * .25);
   }
   ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(Math.round(P.x) - 22, H - 38, 44, 3);
-  const sq = P.sq || 0, mv = Math.min(1, Math.abs(P.vx || 0) / 200);
-  sprite(CUSTOM.char.find(i => i.ok) || IMG.char, CHAR, P.x, P.y + Math.sin(time * 12) * 2 * mv, SIZE.char,
-    Math.max(-.3, Math.min(.3, (P.vx || 0) / 1500)), 1 + .2 * sq, 1 - .15 * sq);
+  const mv = Math.min(1, Math.abs(P.vx || 0) / 200);
+  sprite(CUSTOM.char.find(i => i.ok) || IMG.char, CHAR, P.x, P.y + Math.sin(time * 12) * 2 * mv, SIZE.char);
 
   for (const p of parts) { ctx.globalAlpha = 1 - p.t / .6; ctx.fillStyle = p.c; ctx.fillRect(Math.round(p.x), Math.round(p.y), 6, 6); }
   ctx.globalAlpha = 1; ctx.font = F(22);
@@ -244,12 +258,12 @@ function draw() {
   ctx.restore();
 
   if (flash > 0) { ctx.fillStyle = 'rgba(230,57,70,' + flash * .55 + ')'; ctx.fillRect(0, 0, W, H); }
-  box(16, 16, 130, 34); box(W - 146, 16, 130, 34);                                  // HUD
-  ctx.font = F(16);
-  ctx.textAlign = 'left';  label('점수 ' + score, 26, 34, '#ffd23f');
-  ctx.textAlign = 'right'; label('최고 ' + best, W - 26, 34, '#f4f1de');
+  box(10, 10, 170, 40); box(W - 180, 10, 170, 40);                                  // HUD
+  ctx.font = F(22);
+  ctx.textAlign = 'left';  label('점수 ' + score, 22, 31, '#ffd23f');
+  ctx.textAlign = 'right'; label('최고 ' + best, W - 22, 31, '#f4f1de');
   if (state === 'play' && combo >= 2) {
-    ctx.textAlign = 'center'; ctx.font = F(18 + Math.min(10, mult() * 2));
+    ctx.textAlign = 'center'; ctx.font = F(mult() >= 3 ? 33 : 22);
     label('콤보 ' + combo + '  x' + mult(), W / 2, 78, '#ff9f1c');
   }
 }
@@ -268,7 +282,7 @@ addEventListener('keydown', e => {
   if (!onBtn && ['ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
   keys[e.code] = true;
   if (e.code === 'KeyM') toggleMute();
-  if (state !== 'play' && !onBtn && (e.code === 'Space' || e.code === 'Enter')) start();
+  if (state !== 'play' && !onBtn && setEl.hidden && (e.code === 'Space' || e.code === 'Enter')) start();
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
 function pointerX(e) { const r = cv.getBoundingClientRect(); return (e.clientX - r.left) / r.width * W; }
@@ -281,29 +295,29 @@ function toggleMute() { muted = !muted; try { localStorage.setItem('dodgeMute', 
 mEl.addEventListener('click', () => { toggleMute(); mEl.blur(); });
 showMute();
 
-// ----- 이미지 업로드 (자동 축소 후 브라우저에 저장) -----
-const MAX_PX = 128;                          // 업로드 이미지를 이 크기 이하로 자동 축소
+// ----- 이미지 설정 (업로드 · 개별 삭제 · 끌어놓기) -----
+const MAX_PX = 256;                          // 업로드 이미지를 이 크기 이하로 자동 축소 (비율 유지)
 const MAX_N  = 8;                            // 똥/먹이 종류별 최대 장수 (넘으면 오래된 것부터 삭제)
+const KINDS = [['char', '캐릭터', 1], ['poop', '똥', MAX_N], ['food', '먹이', MAX_N]];
 const DATA = { char: [], poop: [], food: [] }, CUSTOM = { char: [], poop: [], food: [] };
-const fEl = document.getElementById('f');
+const fEl = document.getElementById('f'), secs = document.getElementById('secs'),
+      mainEl = document.getElementById('main'), setEl = document.getElementById('set');
 let target = null;
+const el = (t, c, txt) => { const e = document.createElement(t); if (c) e.className = c; if (txt) e.textContent = txt; return e; };
 
 // 업로드한 이미지가 있으면 그중 랜덤, 없으면 ASSETS/이모지 기본값
 function pickImg(poop, k) {
   const l = (poop ? CUSTOM.poop : CUSTOM.food).filter(i => i.ok);
   return l.length ? l[Math.random() * l.length | 0] : (poop ? IMG.poop : IMG.foods[k]);
 }
-function refreshUp() {
-  for (const k in DATA) {
-    const n = DATA[k].length;
-    document.querySelector('[data-r="' + k + '"]').hidden = !n;
-    document.querySelector('[data-n="' + k + '"]').textContent = n ? n + '장' : '';
-  }
-}
+function showMain() { mainEl.hidden = false; setEl.hidden = true; mEl.hidden = false; }
+function showSet() { mainEl.hidden = true; setEl.hidden = false; mEl.hidden = true; render(); setEl.scrollTop = 0; }
+
 function setKind(k, list) {
   DATA[k] = list; CUSTOM[k] = list.map(loadImg);
-  try { localStorage.setItem('dodgeImg_' + k, JSON.stringify(list)); } catch (e) {}
-  refreshUp();
+  try { localStorage.setItem('dodgeImg_' + k, JSON.stringify(list)); }
+  catch (e) { alert('저장 공간이 부족하여 이 이미지는 새로고침 후 유지되지 않을 수 있습니다.'); }
+  render();
 }
 function shrink(f) {
   return new Promise(res => {
@@ -315,31 +329,61 @@ function shrink(f) {
       const c = document.createElement('canvas');
       c.width = Math.max(1, Math.round(im.naturalWidth * k));
       c.height = Math.max(1, Math.round(im.naturalHeight * k));
-      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
-      res(c.toDataURL('image/png'));
+      const x = c.getContext('2d'); x.imageSmoothingQuality = 'high';
+      x.drawImage(im, 0, 0, c.width, c.height);
+      res(c.toDataURL('image/webp', 0.92));  // 미지원 브라우저는 PNG로 저장됨 (투명 유지)
     };
     im.onerror = () => { URL.revokeObjectURL(url); res(null); };
     im.src = url;
   });
 }
-document.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => {
-  target = b.dataset.k; fEl.multiple = target !== 'char'; fEl.click();
-}));
-document.querySelectorAll('[data-r]').forEach(b => b.addEventListener('click', () => setKind(b.dataset.r, [])));
-fEl.addEventListener('change', async () => {
-  const files = [...fEl.files].filter(f => f.type.startsWith('image/')); fEl.value = '';
-  if (!files.length || !target) return;
+async function addFiles(k, fl) {
+  const max = KINDS.find(x => x[0] === k)[2];
+  const files = [...fl].filter(f => f.type.startsWith('image/'));
+  if (!files.length) return;
   const got = (await Promise.all(files.map(shrink))).filter(Boolean);
   if (!got.length) return alert('이미지를 불러오지 못했습니다.');
-  setKind(target, target === 'char' ? got.slice(0, 1) : DATA[target].concat(got).slice(-MAX_N));
-});
-for (const k in DATA) {                      // 저장된 이미지 복원
+  setKind(k, max === 1 ? got.slice(0, 1) : DATA[k].concat(got).slice(-max));
+}
+function render() {
+  secs.innerHTML = '';
+  for (const [k, name, max] of KINDS) {
+    const list = DATA[k], sec = el('div', 'sec'), h = el('h2');
+    h.append(el('span', '', name + ' ' + list.length + '/' + max));
+    if (list.length) { const c = el('button', 'alt', '전체 삭제'); c.onclick = () => setKind(k, []); h.append(c); }
+    const grid = el('div', 'grid');
+    list.forEach((src, i) => {
+      const t = el('div', 'th'), im = new Image(), x = el('button', 'x', '✕');
+      im.src = src; im.alt = name + ' ' + (i + 1);
+      x.title = '삭제'; x.setAttribute('aria-label', name + ' ' + (i + 1) + ' 삭제');
+      x.onclick = () => setKind(k, list.filter((_, j) => j !== i));
+      t.append(im, x); grid.append(t);
+    });
+    if (list.length < max) {
+      const a = el('button', 'add', '+'); a.title = name + ' 이미지 추가';
+      a.onclick = () => { target = k; fEl.multiple = max > 1; fEl.click(); };
+      grid.append(a);
+    }
+    if (!list.length) grid.append(el('span', 'none', '기본 이미지를 사용합니다.'));
+    grid.ondragover = e => { e.preventDefault(); grid.classList.add('drag'); };
+    grid.ondragleave = () => grid.classList.remove('drag');
+    grid.ondrop = e => { e.preventDefault(); grid.classList.remove('drag'); addFiles(k, e.dataTransfer.files); };
+    sec.append(h, grid); secs.append(sec);
+  }
+}
+fEl.addEventListener('change', () => { const f = [...fEl.files]; fEl.value = ''; if (target) addFiles(target, f); });
+document.getElementById('gs').onclick = showSet;
+document.getElementById('back').onclick = () => { showMain(); bEl.focus(); };
+addEventListener('keydown', e => { if (e.code === 'Escape' && !setEl.hidden) { showMain(); bEl.focus(); } });
+addEventListener('dragover', e => e.preventDefault());   // 설정 칸 밖에 놓아도 페이지가 이동하지 않도록
+addEventListener('drop', e => e.preventDefault());
+for (const [k] of KINDS) {                   // 저장된 이미지 복원
   try {
     const raw = localStorage.getItem('dodgeImg_' + k) || (k === 'char' && localStorage.getItem('dodgeChar'));
     if (raw) setKind(k, raw[0] === '[' ? JSON.parse(raw) : [raw]);
   } catch (e) {}
 }
-refreshUp();
+render();
 </script>
 </body>
 </html>
