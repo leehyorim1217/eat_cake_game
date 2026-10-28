@@ -4,30 +4,31 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>똥피하기</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@latest/dist/galmuri.css">
 <style>
-:root{--sky:#bfe3f2;--grass:#7fb857;--soil:#6b4f3a;--ink:#2b2622;--sun:#ffb703;--paper:#fffaf0}
-*{box-sizing:border-box}
+:root{--bg:#0d0d1a;--navy:#1b1b2f;--cream:#f4f1de;--sun:#ffd23f;--red:#e63946}
+*{box-sizing:border-box;border-radius:0}
 [hidden]{display:none!important}
 html,body{height:100%;margin:0}
-body{background:var(--soil);font-family:'Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:var(--ink);display:flex;align-items:center;justify-content:center;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
-#wrap{position:relative;width:min(100vw,calc(100dvh*2/3));aspect-ratio:2/3;background:var(--sky)}
-canvas{display:block;width:100%;height:100%;touch-action:none}
-#ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(43,38,34,.45)}
-.card{background:var(--paper);border:4px solid var(--ink);border-radius:20px;box-shadow:0 8px 0 var(--ink);padding:28px 24px;text-align:center;width:100%;max-width:320px}
-h1{margin:0 0 8px;font-size:clamp(36px,11vw,52px);font-weight:400;line-height:1.1}
-p{margin:0 0 20px;font-size:clamp(15px,4.2vw,18px);line-height:1.5}
-button{font:inherit;font-size:22px;color:var(--ink);background:var(--sun);border:3px solid var(--ink);border-radius:14px;padding:10px 28px;box-shadow:0 5px 0 var(--ink);cursor:pointer}
-button:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
-button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
-#m{position:absolute;top:40px;right:10px;font-size:18px;padding:4px 8px;border-width:2px;border-radius:10px;box-shadow:0 3px 0 var(--ink);background:var(--paper)}
-.up{display:grid;gap:8px;margin-top:18px;text-align:left}
-.line{display:flex;align-items:center;gap:6px;font-size:16px}
-.line span{width:3.4em}
-.line em{font-style:normal;font-size:14px;margin-left:auto;opacity:.7}
-.alt{font-size:16px;padding:6px 14px;background:var(--paper);border-width:2px;border-radius:10px;box-shadow:0 3px 0 var(--ink)}
+body{background:var(--bg);font-family:'Galmuri11','DotGothic16','Malgun Gothic',monospace;color:var(--cream);display:flex;align-items:center;justify-content:center;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+#wrap{position:relative;width:min(100vw,calc(100dvh*2/3));aspect-ratio:2/3;background:#5c94fc}
+#wrap::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 4px var(--cream),inset 0 0 0 8px #000;background:repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 1px,transparent 1px 3px)}
+canvas{display:block;width:100%;height:100%;touch-action:none;image-rendering:pixelated}
+#ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(13,13,26,.6)}
+.card{background:var(--navy);border:4px solid var(--cream);box-shadow:0 0 0 4px #000,8px 8px 0 4px rgba(0,0,0,.5);padding:24px 20px;text-align:center;width:100%;max-width:320px}
+h1{margin:0 0 12px;font-size:clamp(30px,9vw,44px);font-weight:400;line-height:1.15;color:var(--sun);text-shadow:3px 3px 0 var(--red)}
+p{margin:0 0 20px;font-size:clamp(13px,3.6vw,15px);line-height:1.7}
+b{color:var(--sun);font-weight:400}
+button{font:inherit;font-size:20px;color:var(--navy);background:var(--sun);border:4px solid #000;padding:10px 24px;box-shadow:inset 4px 4px 0 #fff3b0,inset -4px -4px 0 #c99700;cursor:pointer}
+button:active{box-shadow:inset 4px 4px 0 #c99700,inset -4px -4px 0 #fff3b0;transform:translate(2px,2px)}
+button:focus-visible{outline:3px dashed var(--red);outline-offset:4px}
+#m{position:absolute;top:56px;right:14px;font-size:16px;padding:2px 6px;background:var(--navy);border:3px solid var(--cream);box-shadow:0 0 0 3px #000}
+.up{display:grid;gap:8px;margin-top:20px;text-align:left}
+.line{display:flex;align-items:center;gap:6px;font-size:14px}
+.line span{width:3.6em;color:var(--sun)}
+.line em{font-style:normal;font-size:12px;margin-left:auto;opacity:.8}
+.alt{font-size:14px;padding:4px 10px;background:#3a3a5c;color:var(--cream);border:3px solid var(--cream);box-shadow:none}
+.alt:active{background:#55557f;transform:none;box-shadow:none}
 </style>
 </head>
 <body>
@@ -35,12 +36,12 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
   <canvas id="g" aria-label="똥피하기 게임 화면"></canvas>
   <div id="ui">
     <div class="card">
-      <h1 id="t">똥피하기 </h1>
-      <p id="d">먹이는 먹고, 장애물은 피하자.<br>화면 터치·드래그로 움직인다.</p>
-      <button id="b" autofocus>시작하기</button>
+      <h1 id="t">똥피하기 💩</h1>
+      <p id="d">먹이는 먹고 똥은 피해야 합니다.<br>← → / A D 키, 마우스, 터치로 움직일 수 있습니다.<br>먹이를 연속으로 먹으면 콤보 점수가 올라갑니다.</p>
+      <button id="b" autofocus>▶ 시작하기</button>
       <div class="up">
         <div class="line"><span>캐릭터</span><button class="alt" data-k="char">올리기</button><button class="alt" data-r="char" hidden>기본으로</button><em data-n="char"></em></div>
-        <div class="line"><span>장애물</span><button class="alt" data-k="poop">추가</button><button class="alt" data-r="poop" hidden>기본으로</button><em data-n="poop"></em></div>
+        <div class="line"><span>똥</span><button class="alt" data-k="poop">추가</button><button class="alt" data-r="poop" hidden>기본으로</button><em data-n="poop"></em></div>
         <div class="line"><span>먹이</span><button class="alt" data-k="food">추가</button><button class="alt" data-r="food" hidden>기본으로</button><em data-n="food"></em></div>
         <input id="f" type="file" accept="image/*" hidden>
       </div>
@@ -68,7 +69,8 @@ const SOUNDS = { start: '', eat: '', over: '' };   // 예: eat: 'sfx/eat.mp3'
 const CHAR = '🐥', POOP = '💩', FOODS = ['🍎', '🍙', '🍪', '🍓'];
 const SIZE = { char: 48, item: 40 };        // 화면에 그려지는 크기(px)
 const FOOD_POINT = 10;                      // 먹이 1개 점수
-const MOVE_SPEED = 320;                     // 캐릭터 이동 속도(px/s)
+const MOVE_SPEED = 440;                    // 키보드 이동 속도(px/s)
+const FOLLOW = 30;                         // 마우스·터치 추적 속도 (클수록 빠르게 따라옴)
 const BASE_FALL  = 150;                     // 기본 낙하 속도(px/s)
 // =====================================================
 
@@ -79,15 +81,14 @@ function loadImg(src) {
   return im;
 }
 const IMG = { char: loadImg(ASSETS.char), poop: loadImg(ASSETS.poop), foods: ASSETS.foods.map(loadImg) };
-function sprite(img, emoji, x, y, size) {
+function sprite(img, emoji, x, y, size, rot, sx, sy) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot || 0); ctx.scale(sx || 1, sy || 1);
   if (img && img.ok) {
     const k = size / Math.max(img.naturalWidth, img.naturalHeight);
     const w = img.naturalWidth * k, h = img.naturalHeight * k;
-    ctx.drawImage(img, x - w / 2, y - h / 2, w, h);
-  } else {
-    ctx.font = (size * 0.9) + 'px serif';
-    ctx.fillText(emoji, x, y);
-  }
+    ctx.drawImage(img, -w / 2, -h / 2, w, h);
+  } else { ctx.font = (size * 0.9) + 'px serif'; ctx.fillText(emoji, 0, 0); }
+  ctx.restore();
 }
 
 // ----- 효과음 (파일이 없으면 WebAudio로 직접 합성) -----
@@ -128,29 +129,30 @@ let best = 0;
 try { best = +localStorage.getItem('dodgeBest') || 0; } catch (e) {}
 
 const P = { x: W / 2, y: H - 52 };
-let items = [], pops = [], score = 0, spawn = 0, state = 'ready', last = 0, tx = null;
+let items = [], pops = [], score = 0, spawn = 0, state = 'ready', last = 0, tx = null, combo = 0, shake = 0, flash = 0, time = 0, parts = [];
 const keys = {};
 
 function start() {
-  items = []; pops = []; score = 0; spawn = 0; tx = null; P.x = W / 2;
+  items = []; pops = []; parts = []; score = 0; combo = 0; shake = 0; flash = 0; spawn = 0; tx = null; P.x = W / 2;
   state = 'play'; ui.hidden = true; last = performance.now(); sfx('start');
 }
 
 function gameOver() {
-  state = 'over'; sfx('over');
+  state = 'over'; sfx('over'); shake = 0.5; flash = 0.6; burst(P.x, P.y, '#8b5a2b', 28);
   const isBest = score > best;
   if (isBest) { best = score; try { localStorage.setItem('dodgeBest', best); } catch (e) {} }
-  tEl.textContent = '게임 오버 ';
-  dEl.innerHTML = '점수 <b>' + score + '</b> · 최고 <b>' + best + '</b>' + (isBest ? '<br>신기록이에요!' : '');
-  bEl.textContent = '다시 하기';
+  tEl.textContent = '게임 오버 💩';
+  dEl.innerHTML = '점수 <b>' + score + '</b> · 최고 <b>' + best + '</b>' + (isBest ? '<br>신기록입니다!' : '');
+  bEl.textContent = '▶ 다시 하기';
   ui.hidden = false; bEl.focus();
 }
 
 function update(dt) {
-  if (keys.ArrowLeft || keys.KeyA) P.x -= MOVE_SPEED * dt;
-  if (keys.ArrowRight || keys.KeyD) P.x += MOVE_SPEED * dt;
-  if (tx !== null) { const d = tx - P.x; P.x += Math.sign(d) * Math.min(Math.abs(d), MOVE_SPEED * 2 * dt); }
+  const px = P.x, kx = (keys.ArrowRight || keys.KeyD ? 1 : 0) - (keys.ArrowLeft || keys.KeyA ? 1 : 0);
+  if (kx) { tx = null; P.x += kx * MOVE_SPEED * dt; }
+  if (tx !== null) P.x += (tx - P.x) * (1 - Math.exp(-dt * FOLLOW));
   P.x = Math.max(22, Math.min(W - 22, P.x));
+  P.vx = (P.x - px) / (dt || 0.016);
 
   const level = 1 + score / 150;                       // 점수가 오를수록 빨라짐
   spawn -= dt;
@@ -158,49 +160,103 @@ function update(dt) {
     spawn = Math.max(0.25, 0.7 / level);
     const poop = Math.random() < Math.min(0.7, 0.45 + score / 1000);
     const k = Math.random() * (ASSETS.foods.length || FOODS.length) | 0;
-    items.push({ x: 20 + Math.random() * (W - 40), y: -30, poop,
+    items.push({ x: 20 + Math.random() * (W - 40), y: -30, poop, r: Math.random() * 6.28, w: (Math.random() - .5) * 5,
       v: (BASE_FALL + Math.random() * 80) * level,
       e: poop ? POOP : FOODS[k % FOODS.length], img: pickImg(poop, k) });
   }
 
   for (let i = items.length - 1; i >= 0; i--) {
     const it = items[i];
-    it.y += it.v * dt;
+    it.y += it.v * dt; it.r += it.w * dt;
     if (Math.hypot(it.x - P.x, it.y - P.y) < 32) {
       if (it.poop) { gameOver(); return; }
-      score += FOOD_POINT; sfx('eat');
-      pops.push({ x: it.x, y: it.y, t: 0 });
+      combo++; const pt = FOOD_POINT * mult();
+      score += pt; sfx('eat'); P.sq = 1;
+      pops.push({ x: it.x, y: it.y, t: 0, v: pt }); burst(it.x, it.y, '#ffd166', 10);
       items.splice(i, 1);
-    } else if (it.y > H + 30) items.splice(i, 1);
+    } else if (it.y > H + 30) { if (!it.poop) combo = 0; items.splice(i, 1); }
   }
   for (let i = pops.length - 1; i >= 0; i--) { pops[i].t += dt; if (pops[i].t > 0.6) pops.splice(i, 1); }
 }
 
+const mult = () => Math.min(5, 1 + ((combo - 1) / 3 | 0));   // 콤보 배율 (최대 x5)
+function burst(x, y, c, n) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * 6.28, v = 80 + Math.random() * 180;
+    parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 120, t: 0, c });
+  }
+}
+function stepFx(dt) {
+  shake = Math.max(0, shake - dt); flash = Math.max(0, flash - dt * 1.5);
+  P.sq = Math.max(0, (P.sq || 0) - dt * 5);
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i]; p.t += dt; p.vy += 600 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+    if (p.t > 0.6) parts.splice(i, 1);
+  }
+}
+const F = n => n + "px 'Galmuri11','DotGothic16','Malgun Gothic',monospace";
+const SKY = ['#5c94fc', '#6ba0ff', '#7bacff', '#8cb8ff', '#9dc4ff', '#aed0ff'];
+const clouds = [[30, 80, 2], [230, 140, 1.5], [330, 40, 1]];
+function cloud(x, y, k) {
+  const u = 4 * k;
+  ctx.fillStyle = '#fff';
+  for (const [dx, dy, w] of [[2, 0, 4], [1, 1, 6], [0, 2, 8]]) ctx.fillRect(x + dx * u, y + dy * u, w * u, u);
+  ctx.fillStyle = '#c4dcff'; ctx.fillRect(x, y + 3 * u, 8 * u, u / 2);
+}
+function box(x, y, w, h) {
+  ctx.fillStyle = '#1b1b2f'; ctx.fillRect(x, y, w, h);
+  ctx.strokeStyle = '#f4f1de'; ctx.lineWidth = 3; ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
+}
+function label(t, x, y, c) { ctx.fillStyle = '#000'; ctx.fillText(t, x + 2, y + 2); ctx.fillStyle = c; ctx.fillText(t, x, y); }
 function draw() {
-  ctx.fillStyle = '#bfe3f2'; ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = '#7fb857'; ctx.fillRect(0, H - 28, W, 28);
-  ctx.fillStyle = '#6b4f3a'; ctx.fillRect(0, H - 10, W, 10);
+  ctx.save();
+  if (shake > 0) ctx.translate((Math.random() - .5) * shake * 24, (Math.random() - .5) * shake * 24);
+  SKY.forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(-20, i * H / 6 - 1, W + 40, H / 6 + 2); });
+  for (const c of clouds) cloud(Math.round((c[0] + time * 14 * c[2]) % (W + 160) - 80), c[1], c[2]);
+
+  ctx.fillStyle = '#c84c0c'; ctx.fillRect(-20, H - 40, W + 40, 60);                // 벽돌 바닥
+  ctx.fillStyle = '#7c2c00';
+  ctx.fillRect(-20, H - 17, W + 40, 2); ctx.fillRect(-20, H - 1, W + 40, 2);
+  for (let x = 0; x < W + 32; x += 32) { ctx.fillRect(x, H - 32, 2, 15); ctx.fillRect(x + 16, H - 15, 2, 14); }
+  ctx.fillStyle = '#00a800'; ctx.fillRect(-20, H - 40, W + 40, 8);                  // 잔디 띠
+  ctx.fillStyle = '#005800'; ctx.fillRect(-20, H - 32, W + 40, 2);
 
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  for (const it of items) sprite(it.img, it.e, it.x, it.y, SIZE.item);
-  sprite(CUSTOM.char.find(i => i.ok) || IMG.char, CHAR, P.x, P.y, SIZE.char);
-
-  ctx.font = '22px Jua, sans-serif';
-  for (const p of pops) {
-    ctx.globalAlpha = 1 - p.t / 0.6;
-    ctx.fillStyle = '#2b2622';
-    ctx.fillText('+' + FOOD_POINT, p.x, p.y - 20 - p.t * 50);
+  for (const it of items) {                    // 그림자 → 먹이 반짝임 → 본체
+    const a = Math.min(1, it.y / H), w = Math.round(8 + 12 * a);
+    ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(Math.round(it.x) - w, H - 38, w * 2, 3);
+    if (!it.poop) {
+      const s = Math.round(SIZE.item * 1.25);
+      ctx.fillStyle = Math.sin(time * 8 + it.r) > 0 ? 'rgba(255,230,120,.5)' : 'rgba(255,230,120,.2)';
+      ctx.fillRect(Math.round(it.x - s / 2), Math.round(it.y - s / 2), s, s);
+    }
+    sprite(it.img, it.e, it.x, it.y, SIZE.item, it.poop ? it.r : Math.sin(time * 4 + it.r) * .25);
   }
-  ctx.globalAlpha = 1;
+  ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(Math.round(P.x) - 22, H - 38, 44, 3);
+  const sq = P.sq || 0, mv = Math.min(1, Math.abs(P.vx || 0) / 200);
+  sprite(CUSTOM.char.find(i => i.ok) || IMG.char, CHAR, P.x, P.y + Math.sin(time * 12) * 2 * mv, SIZE.char,
+    Math.max(-.3, Math.min(.3, (P.vx || 0) / 1500)), 1 + .2 * sq, 1 - .15 * sq);
 
-  ctx.fillStyle = '#2b2622'; ctx.font = '24px Jua, sans-serif';
-  ctx.textAlign = 'left';  ctx.fillText('점수 ' + score, 14, 26);
-  ctx.textAlign = 'right'; ctx.fillText('최고 ' + best, W - 14, 26);
+  for (const p of parts) { ctx.globalAlpha = 1 - p.t / .6; ctx.fillStyle = p.c; ctx.fillRect(Math.round(p.x), Math.round(p.y), 6, 6); }
+  ctx.globalAlpha = 1; ctx.font = F(22);
+  for (const p of pops) { ctx.globalAlpha = 1 - p.t / .6; label('+' + p.v, p.x, p.y - 22 - p.t * 50, '#fff'); }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
+  if (flash > 0) { ctx.fillStyle = 'rgba(230,57,70,' + flash * .55 + ')'; ctx.fillRect(0, 0, W, H); }
+  box(16, 16, 130, 34); box(W - 146, 16, 130, 34);                                  // HUD
+  ctx.font = F(16);
+  ctx.textAlign = 'left';  label('점수 ' + score, 26, 34, '#ffd23f');
+  ctx.textAlign = 'right'; label('최고 ' + best, W - 26, 34, '#f4f1de');
+  if (state === 'play' && combo >= 2) {
+    ctx.textAlign = 'center'; ctx.font = F(18 + Math.min(10, mult() * 2));
+    label('콤보 ' + combo + '  x' + mult(), W / 2, 78, '#ff9f1c');
+  }
 }
 
 function loop(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  if (state === 'play') update(dt);
+  time += dt; if (state === 'play') update(dt); stepFx(dt);
   draw();
   requestAnimationFrame(loop);
 }
