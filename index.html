@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>똥피하기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{--sky:#bfe3f2;--grass:#7fb857;--soil:#6b4f3a;--ink:#2b2622;--sun:#ffb703;--paper:#fffaf0}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--soil);font-family:'Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:var(--ink);display:flex;align-items:center;justify-content:center;overscroll-behavior:none;user-select:none;-webkit-user-select:none}
+#wrap{position:relative;width:min(100vw,calc(100dvh*2/3));aspect-ratio:2/3;background:var(--sky)}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+#ui{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(43,38,34,.45)}
+.card{background:var(--paper);border:4px solid var(--ink);border-radius:20px;box-shadow:0 8px 0 var(--ink);padding:28px 24px;text-align:center;width:100%;max-width:320px}
+h1{margin:0 0 8px;font-size:clamp(36px,11vw,52px);font-weight:400;line-height:1.1}
+p{margin:0 0 20px;font-size:clamp(15px,4.2vw,18px);line-height:1.5}
+button{font:inherit;font-size:22px;color:var(--ink);background:var(--sun);border:3px solid var(--ink);border-radius:14px;padding:10px 28px;box-shadow:0 5px 0 var(--ink);cursor:pointer}
+button:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+#m{position:absolute;top:40px;right:10px;font-size:18px;padding:4px 8px;border-width:2px;border-radius:10px;box-shadow:0 3px 0 var(--ink);background:var(--paper)}
+.up{display:grid;gap:8px;margin-top:18px;text-align:left}
+.line{display:flex;align-items:center;gap:6px;font-size:16px}
+.line span{width:3.4em}
+.line em{font-style:normal;font-size:14px;margin-left:auto;opacity:.7}
+.alt{font-size:16px;padding:6px 14px;background:var(--paper);border-width:2px;border-radius:10px;box-shadow:0 3px 0 var(--ink)}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="g" aria-label="똥피하기 게임 화면"></canvas>
+  <div id="ui">
+    <div class="card">
+      <h1 id="t">똥피하기 </h1>
+      <p id="d">먹이는 먹고, 장애물은 피하자.<br>화면 터치·드래그로 움직인다.</p>
+      <button id="b" autofocus>시작하기</button>
+      <div class="up">
+        <div class="line"><span>캐릭터</span><button class="alt" data-k="char">올리기</button><button class="alt" data-r="char" hidden>기본으로</button><em data-n="char"></em></div>
+        <div class="line"><span>장애물</span><button class="alt" data-k="poop">추가</button><button class="alt" data-r="poop" hidden>기본으로</button><em data-n="poop"></em></div>
+        <div class="line"><span>먹이</span><button class="alt" data-k="food">추가</button><button class="alt" data-r="food" hidden>기본으로</button><em data-n="food"></em></div>
+        <input id="f" type="file" accept="image/*" hidden>
+      </div>
+    </div>
+  </div>
+  <button id="m" aria-label="소리 켜기/끄기">🔊</button>
+</div>
+<script>
+const cv = document.getElementById('g'), ctx = cv.getContext('2d');
+const W = 400, H = 600;
+cv.width = W; cv.height = H;
+const ui = document.getElementById('ui'), tEl = document.getElementById('t'),
+      dEl = document.getElementById('d'), bEl = document.getElementById('b');
+
+// ===== 설정 (여기만 바꿔도 게임 느낌이 달라져요) =====
+// 이미지: 경로를 넣으면 그 이미지, 파일이 없거나 비워두면 이모지로 표시돼요. (투명 배경 PNG 권장)
+const ASSETS = {
+  char:  'img/char.png',                      // 캐릭터
+  poop:  'img/poop.png',                      // 똥 (닿으면 게임 오버)
+  foods: ['img/food1.png', 'img/food2.png'],  // 먹이 (여러 장이면 랜덤)
+};
+// 효과음: 경로를 넣으면 그 파일, 비워두면 내장 효과음이 나와요. (mp3/ogg/wav)
+const SOUNDS = { start: '', eat: '', over: '' };   // 예: eat: 'sfx/eat.mp3'
+// 이미지가 없을 때 대신 쓰는 이모지
+const CHAR = '🐥', POOP = '💩', FOODS = ['🍎', '🍙', '🍪', '🍓'];
+const SIZE = { char: 48, item: 40 };        // 화면에 그려지는 크기(px)
+const FOOD_POINT = 10;                      // 먹이 1개 점수
+const MOVE_SPEED = 320;                     // 캐릭터 이동 속도(px/s)
+const BASE_FALL  = 150;                     // 기본 낙하 속도(px/s)
+// =====================================================
+
+// ----- 이미지 로드 -----
+function loadImg(src) {
+  const im = new Image(); im.ok = false;
+  if (src) { im.onload = () => { im.ok = true; }; im.src = src; }
+  return im;
+}
+const IMG = { char: loadImg(ASSETS.char), poop: loadImg(ASSETS.poop), foods: ASSETS.foods.map(loadImg) };
+function sprite(img, emoji, x, y, size) {
+  if (img && img.ok) {
+    const k = size / Math.max(img.naturalWidth, img.naturalHeight);
+    const w = img.naturalWidth * k, h = img.naturalHeight * k;
+    ctx.drawImage(img, x - w / 2, y - h / 2, w, h);
+  } else {
+    ctx.font = (size * 0.9) + 'px serif';
+    ctx.fillText(emoji, x, y);
+  }
+}
+
+// ----- 효과음 (파일이 없으면 WebAudio로 직접 합성) -----
+let muted = false;
+try { muted = localStorage.getItem('dodgeMute') === '1'; } catch (e) {}
+let ac = null;
+function audio() {
+  if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+  if (ac && ac.state === 'suspended') ac.resume();
+  return ac;
+}
+function tone(f1, f2, dur, type, vol, delay) {
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + (delay || 0), o = a.createOscillator(), g = a.createGain();
+  o.type = type || 'square';
+  o.frequency.setValueAtTime(f1, t);
+  o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  g.gain.setValueAtTime(vol || 0.12, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g); g.connect(a.destination);
+  o.start(t); o.stop(t + dur);
+}
+const SYNTH = {
+  start: () => { tone(330, 660, 0.1); tone(660, 990, 0.12, 'square', 0.12, 0.1); },
+  eat:   () => { tone(660, 880, 0.07); tone(990, 1320, 0.1, 'square', 0.12, 0.07); },
+  over:  () => { tone(300, 90, 0.45, 'sawtooth', 0.18); tone(180, 50, 0.5, 'sawtooth', 0.18, 0.25); },
+};
+function sfx(name) {
+  if (muted) return;
+  if (SOUNDS[name]) {
+    const a = new Audio(SOUNDS[name]);
+    a.onerror = () => SYNTH[name]();
+    a.play().catch(() => {});
+  } else SYNTH[name]();
+}
+
+let best = 0;
+try { best = +localStorage.getItem('dodgeBest') || 0; } catch (e) {}
+
+const P = { x: W / 2, y: H - 52 };
+let items = [], pops = [], score = 0, spawn = 0, state = 'ready', last = 0, tx = null;
+const keys = {};
+
+function start() {
+  items = []; pops = []; score = 0; spawn = 0; tx = null; P.x = W / 2;
+  state = 'play'; ui.hidden = true; last = performance.now(); sfx('start');
+}
+
+function gameOver() {
+  state = 'over'; sfx('over');
+  const isBest = score > best;
+  if (isBest) { best = score; try { localStorage.setItem('dodgeBest', best); } catch (e) {} }
+  tEl.textContent = '게임 오버 ';
+  dEl.innerHTML = '점수 <b>' + score + '</b> · 최고 <b>' + best + '</b>' + (isBest ? '<br>신기록이에요!' : '');
+  bEl.textContent = '다시 하기';
+  ui.hidden = false; bEl.focus();
+}
+
+function update(dt) {
+  if (keys.ArrowLeft || keys.KeyA) P.x -= MOVE_SPEED * dt;
+  if (keys.ArrowRight || keys.KeyD) P.x += MOVE_SPEED * dt;
+  if (tx !== null) { const d = tx - P.x; P.x += Math.sign(d) * Math.min(Math.abs(d), MOVE_SPEED * 2 * dt); }
+  P.x = Math.max(22, Math.min(W - 22, P.x));
+
+  const level = 1 + score / 150;                       // 점수가 오를수록 빨라짐
+  spawn -= dt;
+  if (spawn <= 0) {
+    spawn = Math.max(0.25, 0.7 / level);
+    const poop = Math.random() < Math.min(0.7, 0.45 + score / 1000);
+    const k = Math.random() * (ASSETS.foods.length || FOODS.length) | 0;
+    items.push({ x: 20 + Math.random() * (W - 40), y: -30, poop,
+      v: (BASE_FALL + Math.random() * 80) * level,
+      e: poop ? POOP : FOODS[k % FOODS.length], img: pickImg(poop, k) });
+  }
+
+  for (let i = items.length - 1; i >= 0; i--) {
+    const it = items[i];
+    it.y += it.v * dt;
+    if (Math.hypot(it.x - P.x, it.y - P.y) < 32) {
+      if (it.poop) { gameOver(); return; }
+      score += FOOD_POINT; sfx('eat');
+      pops.push({ x: it.x, y: it.y, t: 0 });
+      items.splice(i, 1);
+    } else if (it.y > H + 30) items.splice(i, 1);
+  }
+  for (let i = pops.length - 1; i >= 0; i--) { pops[i].t += dt; if (pops[i].t > 0.6) pops.splice(i, 1); }
+}
+
+function draw() {
+  ctx.fillStyle = '#bfe3f2'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#7fb857'; ctx.fillRect(0, H - 28, W, 28);
+  ctx.fillStyle = '#6b4f3a'; ctx.fillRect(0, H - 10, W, 10);
+
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const it of items) sprite(it.img, it.e, it.x, it.y, SIZE.item);
+  sprite(CUSTOM.char.find(i => i.ok) || IMG.char, CHAR, P.x, P.y, SIZE.char);
+
+  ctx.font = '22px Jua, sans-serif';
+  for (const p of pops) {
+    ctx.globalAlpha = 1 - p.t / 0.6;
+    ctx.fillStyle = '#2b2622';
+    ctx.fillText('+' + FOOD_POINT, p.x, p.y - 20 - p.t * 50);
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = '#2b2622'; ctx.font = '24px Jua, sans-serif';
+  ctx.textAlign = 'left';  ctx.fillText('점수 ' + score, 14, 26);
+  ctx.textAlign = 'right'; ctx.fillText('최고 ' + best, W - 14, 26);
+}
+
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (state === 'play') update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(t => { last = t; loop(t); });
+
+// ===== 입력 =====
+addEventListener('keydown', e => {
+  const onBtn = !!(e.target.closest && e.target.closest('button'));
+  if (!onBtn && ['ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
+  keys[e.code] = true;
+  if (e.code === 'KeyM') toggleMute();
+  if (state !== 'play' && !onBtn && (e.code === 'Space' || e.code === 'Enter')) start();
+});
+addEventListener('keyup', e => { keys[e.code] = false; });
+function pointerX(e) { const r = cv.getBoundingClientRect(); return (e.clientX - r.left) / r.width * W; }
+cv.addEventListener('pointerdown', e => { if (state === 'play') tx = pointerX(e); });
+cv.addEventListener('pointermove', e => { if (state === 'play') tx = pointerX(e); });
+bEl.addEventListener('click', start);
+const mEl = document.getElementById('m');
+function showMute() { mEl.textContent = muted ? '🔇' : '🔊'; }
+function toggleMute() { muted = !muted; try { localStorage.setItem('dodgeMute', muted ? '1' : '0'); } catch (e) {} showMute(); }
+mEl.addEventListener('click', () => { toggleMute(); mEl.blur(); });
+showMute();
+
+// ----- 이미지 업로드 (자동 축소 후 브라우저에 저장) -----
+const MAX_PX = 128;                          // 업로드 이미지를 이 크기 이하로 자동 축소
+const MAX_N  = 8;                            // 똥/먹이 종류별 최대 장수 (넘으면 오래된 것부터 삭제)
+const DATA = { char: [], poop: [], food: [] }, CUSTOM = { char: [], poop: [], food: [] };
+const fEl = document.getElementById('f');
+let target = null;
+
+// 업로드한 이미지가 있으면 그중 랜덤, 없으면 ASSETS/이모지 기본값
+function pickImg(poop, k) {
+  const l = (poop ? CUSTOM.poop : CUSTOM.food).filter(i => i.ok);
+  return l.length ? l[Math.random() * l.length | 0] : (poop ? IMG.poop : IMG.foods[k]);
+}
+function refreshUp() {
+  for (const k in DATA) {
+    const n = DATA[k].length;
+    document.querySelector('[data-r="' + k + '"]').hidden = !n;
+    document.querySelector('[data-n="' + k + '"]').textContent = n ? n + '장' : '';
+  }
+}
+function setKind(k, list) {
+  DATA[k] = list; CUSTOM[k] = list.map(loadImg);
+  try { localStorage.setItem('dodgeImg_' + k, JSON.stringify(list)); } catch (e) {}
+  refreshUp();
+}
+function shrink(f) {
+  return new Promise(res => {
+    const url = URL.createObjectURL(f), im = new Image();
+    im.onload = () => {
+      URL.revokeObjectURL(url);
+      if (!im.naturalWidth) return res(null);
+      const k = Math.min(1, MAX_PX / Math.max(im.naturalWidth, im.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(im.naturalWidth * k));
+      c.height = Math.max(1, Math.round(im.naturalHeight * k));
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      res(c.toDataURL('image/png'));
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); res(null); };
+    im.src = url;
+  });
+}
+document.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => {
+  target = b.dataset.k; fEl.multiple = target !== 'char'; fEl.click();
+}));
+document.querySelectorAll('[data-r]').forEach(b => b.addEventListener('click', () => setKind(b.dataset.r, [])));
+fEl.addEventListener('change', async () => {
+  const files = [...fEl.files].filter(f => f.type.startsWith('image/')); fEl.value = '';
+  if (!files.length || !target) return;
+  const got = (await Promise.all(files.map(shrink))).filter(Boolean);
+  if (!got.length) return alert('이미지를 불러오지 못했습니다.');
+  setKind(target, target === 'char' ? got.slice(0, 1) : DATA[target].concat(got).slice(-MAX_N));
+});
+for (const k in DATA) {                      // 저장된 이미지 복원
+  try {
+    const raw = localStorage.getItem('dodgeImg_' + k) || (k === 'char' && localStorage.getItem('dodgeChar'));
+    if (raw) setKind(k, raw[0] === '[' ? JSON.parse(raw) : [raw]);
+  } catch (e) {}
+}
+refreshUp();
+</script>
+</body>
+</html>
