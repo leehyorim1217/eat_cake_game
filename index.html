@@ -45,14 +45,14 @@ button:focus-visible{outline:3px dashed var(--red);outline-offset:4px}
   <canvas id="g" aria-label="똥피하기 게임 화면"></canvas>
   <div id="ui">
     <div class="card" id="main">
-      <h1 id="t">똥피하기 💩</h1>
-      <p id="d">먹이는 먹고 똥은 피해야 합니다.<br>← → / A D 키, 마우스, 터치로 움직일 수 있습니다.<br>먹이를 연속으로 먹으면 콤보 점수가 올라갑니다.</p>
+      <h1 id="t">똥피하기 </h1>
+      <p id="d">먹이는 먹고 장애물은 피해야 합니다.<br>← → / A D 키, 마우스, 터치로 움직일 수 있습니다.<br>먹이를 연속으로 먹으면 콤보 점수가 올라갑니다.</p>
       <button id="b" autofocus>▶ 시작하기</button>
       <div class="up"><button class="alt" id="gs">🖼 이미지 설정</button></div>
     </div>
     <div class="card" id="set" hidden>
       <h1>이미지 설정</h1>
-      <p class="hint">이미지를 끌어다 놓거나 + 칸을 눌러 추가합니다.<br>여러 장을 한 번에 선택할 수 있으며, 이 브라우저에만 저장됩니다.</p>
+      <p class="hint">이미지를 끌어다 놓거나 + 칸을 눌러 추가합니다.</p>
       <div id="secs"></div>
       <button id="back">확인</button>
     </div>
@@ -259,7 +259,7 @@ function draw() {
 
   if (flash > 0) { ctx.fillStyle = 'rgba(230,57,70,' + flash * .55 + ')'; ctx.fillRect(0, 0, W, H); }
   box(10, 10, 170, 40); box(W - 180, 10, 170, 40);                                  // HUD
-  ctx.font = F(22);
+  ctx.font = "18px 'Galmuri9','Galmuri11','DotGothic16','Malgun Gothic',monospace";   // Galmuri9의 2배 크기 (또렷함 유지)
   ctx.textAlign = 'left';  label('점수 ' + score, 22, 31, '#ffd23f');
   ctx.textAlign = 'right'; label('최고 ' + best, W - 22, 31, '#f4f1de');
   if (state === 'play' && combo >= 2) {
